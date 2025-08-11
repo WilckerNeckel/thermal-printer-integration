@@ -11,11 +11,11 @@ class MesaOrderPrintService {
 
   MesaOrderPrintService({required ThermalPrinter printer}) : _printer = printer;
 
-  Future<void> printe(VendaMesaEntity mesa) async {
+  Future<void> printe(VendaMesaEntity venda) async {
     try {
       List<int> printing = _printer.createNewPrinting();
-      printing += _makeMesaOrderHeader(mesa);
-      printing += _makeOrderBody(mesa);
+      printing += _makeOrderHeader(venda);
+      printing += _makeOrderBody(venda);
 
       printing += _printer.addCutPaper();
 
@@ -27,20 +27,24 @@ class MesaOrderPrintService {
     }
   }
 
-  List<int> _makeOrderBody(VendaMesaEntity mesa) {
+  List<int> _makeOrderBody(VendaMesaEntity venda) {
     List<int> orderBody = [];
 
-    orderBody += _makeOrderBodyHeader(mesa);
+    orderBody += _makeOrderBodyHeader(venda);
 
-    orderBody += _makeProdutosLancadosList(mesa);
+    orderBody += _makeProdutosLancadosList(venda);
 
     return orderBody;
   }
 
-  List<int> _makeMesaOrderHeader(VendaMesaEntity mesa) {
+  List<int> _makeOrderHeader(VendaMesaEntity venda) {
     List<int> orderHeader = [];
+    String tipoVenda = _getTipoVenda().toUpperCase();
+    String vendaText =
+        "$tipoVenda${_isMesa() ? ": ${venda.numeroMesa}" : ''} #${venda.numeroVenda}";
+
     orderHeader += _printer.addText(
-      text: "MESA: ${mesa.numeroMesa} #${mesa.numeroVenda}",
+      text: vendaText,
       styles: PosStyles(
         align: PosAlign.center,
         width: PosTextSize.size2,
@@ -52,7 +56,7 @@ class MesaOrderPrintService {
     orderHeader += _printer.addSkipLines(1);
 
     orderHeader += _printer.addText(
-      text: "CODIGO TER.: ${mesa.codTerminal}",
+      text: "CODIGO TER.: ${venda.codTerminal}",
       styles: PosStyles(bold: true),
     );
 
@@ -64,16 +68,16 @@ class MesaOrderPrintService {
 
     // atendente
     orderHeader += _printer.addText(
-      text: "ATEND.: ${removeDiacritics(mesa.atendente)}",
+      text: "ATEND.: ${removeDiacritics(venda.atendente)}",
       styles: PosStyles(bold: true),
     );
 
     // identificação
 
-    if (mesa.identificacao != null) {
+    if (venda.identificacao != null) {
       final col = [
         FlexCol(
-          text: "IDENT.: ${removeDiacritics(mesa.identificacao!)}",
+          text: "IDENT.: ${removeDiacritics(venda.identificacao!)}",
           styles: PosStyles(bold: true),
           maxLines: 2,
           units: 12,
@@ -88,7 +92,7 @@ class MesaOrderPrintService {
     return orderHeader;
   }
 
-  List<int> _makeOrderBodyHeader(VendaMesaEntity mesa) {
+  List<int> _makeOrderBodyHeader(VendaMesaEntity venda) {
     List<int> header = [];
     // header
     final headerCols = [
@@ -113,10 +117,10 @@ class MesaOrderPrintService {
     return header;
   }
 
-  List<int> _makeProdutosLancadosList(VendaMesaEntity mesa) {
+  List<int> _makeProdutosLancadosList(VendaMesaEntity venda) {
     List<int> produtosLancados = [];
 
-    for (final produto in mesa.produtosLancados) {
+    for (final produto in venda.produtosLancados) {
       List<FlexCol> produtoRow = [];
 
       produtoRow.add(
@@ -189,4 +193,8 @@ class MesaOrderPrintService {
         return "*";
     }
   }
+
+  bool _isMesa() => true;
+
+  String _getTipoVenda() => _isMesa() ? "mesa" : "balcao";
 }

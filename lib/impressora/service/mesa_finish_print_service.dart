@@ -12,16 +12,16 @@ class MesaFinishPrintService {
   MesaFinishPrintService({required ThermalPrinter printer})
     : _printer = printer;
 
-  Future<void> print(VendaMesaEntity mesa) async {
+  Future<void> print(VendaMesaEntity venda) async {
     List<int> printing = _printer.createNewPrinting();
 
-    printing += _makeHeader(mesa);
+    printing += _makeHeader(venda);
     printing += _printer.addSkipLines(1);
-    printing += _makeVendaInfTop(mesa);
-    printing += _makeBody(mesa);
-    printing += _makePaymentSummary(mesa);
+    printing += _makeVendaInfTop(venda);
+    printing += _makeBody(venda);
+    printing += _makePaymentSummary(venda);
     printing += _printer.addSkipLines(1);
-    printing += _makeVendaInfBottom(mesa);
+    printing += _makeVendaInfBottom(venda);
     printing += _printer.addSkipLines(1);
     printing += _makeFooter();
 
@@ -30,15 +30,15 @@ class MesaFinishPrintService {
     await _printer.sendPrint(printing);
   }
 
-  List<int> _makeBody(VendaMesaEntity mesa) {
+  List<int> _makeBody(VendaMesaEntity venda) {
     List<int> body = [];
-    body += _makeBodyHeader(mesa);
-    body += _makeProdutosLancadosList(mesa);
+    body += _makeBodyHeader();
+    body += _makeProdutosLancadosList(venda);
 
     return body;
   }
 
-  List<int> _makeBodyHeader(VendaMesaEntity mesa) {
+  List<int> _makeBodyHeader() {
     List<int> header = [];
     // header
     header += _printer.addDivider();
@@ -71,10 +71,10 @@ class MesaFinishPrintService {
     return header;
   }
 
-  List<int> _makeProdutosLancadosList(VendaMesaEntity mesa) {
+  List<int> _makeProdutosLancadosList(VendaMesaEntity venda) {
     List<int> produtosLancados = [];
 
-    for (final produto in mesa.produtosLancados) {
+    for (final produto in venda.produtosLancados) {
       List<FlexCol> produtoRow = [];
 
       produtoRow.add(
@@ -118,36 +118,36 @@ class MesaFinishPrintService {
     return produtosLancados;
   }
 
-  List<int> _makeVendaInfTop(VendaMesaEntity mesa) {
+  List<int> _makeVendaInfTop(VendaMesaEntity venda) {
     List<int> vendaInf = [];
-    vendaInf += _makeVendaIdentifier(mesa);
+    vendaInf += _makeVendaIdentifier(venda);
     vendaInf += _makeWarning();
     vendaInf += _printer.addSkipLines(1);
 
     vendaInf += _printer.addText(
-      text: "ATEND.: ${removeDiacritics(mesa.atendente)}",
+      text: "ATEND.: ${removeDiacritics(venda.atendente)}",
       styles: PosStyles(),
     );
 
     // codigo venda
     vendaInf += _printer.addText(
-      text: "CODIGO V.: #${mesa.codigoVenda}",
+      text: "CODIGO V.: #${venda.codigoVenda}",
       styles: PosStyles(),
     );
 
     vendaInf += _printer.addText(
-      text: "CODIGO TER.: #${mesa.codTerminal}",
+      text: "CODIGO TER.: #${venda.codTerminal}",
       styles: PosStyles(),
     );
 
     return vendaInf;
   }
 
-  List<int> _makeVendaInfBottom(VendaMesaEntity mesa) {
+  List<int> _makeVendaInfBottom(VendaMesaEntity venda) {
     List<int> vendaInf = [];
 
-    if (mesa.cpfCliente != null) {
-      vendaInf += _makeClientIdentifier(mesa);
+    if (venda.cpfCliente != null) {
+      vendaInf += _makeClientIdentifier(venda);
     }
 
     vendaInf += _printer.addText(
@@ -163,13 +163,13 @@ class MesaFinishPrintService {
     return vendaInf;
   }
 
-  List<int> _makeClientIdentifier(VendaMesaEntity mesa) {
+  List<int> _makeClientIdentifier(VendaMesaEntity venda) {
     List<int> clientIdentifier = [];
 
-    String? cpfCnpj = mesa.cnpjCliente ?? mesa.cpfCliente;
+    String? cpfCnpj = venda.cnpjCliente ?? venda.cpfCliente;
 
     if (cpfCnpj != null) {
-      String clientText = "CPF/CNPJ do consumidor: ${mesa.cpfCliente}";
+      String clientText = "CPF/CNPJ do consumidor: ${venda.cpfCliente}";
       clientIdentifier += _printer.addText(
         text: clientText,
         styles: PosStyles(align: PosAlign.left),
@@ -179,12 +179,12 @@ class MesaFinishPrintService {
     return clientIdentifier;
   }
 
-  List<int> _makeHeader(VendaMesaEntity mesa) {
+  List<int> _makeHeader(VendaMesaEntity venda) {
     List<int> header = [];
 
     // nome empresa
     header += _printer.addText(
-      text: removeDiacritics(mesa.nomeEmpresa),
+      text: removeDiacritics(venda.nomeEmpresa),
       styles: PosStyles(
         bold: true,
         align: PosAlign.center,
@@ -194,7 +194,7 @@ class MesaFinishPrintService {
     );
 
     header += _printer.addText(
-      text: "CNPJ: ${mesa.cnpjEmpresa}",
+      text: "CNPJ: ${venda.cnpjEmpresa}",
       styles: PosStyles(
         bold: true,
         align: PosAlign.center,
@@ -204,9 +204,9 @@ class MesaFinishPrintService {
     );
 
     // cnpj + I.E
-    if (mesa.inscricaoEstadual != null) {
+    if (venda.inscricaoEstadual != null) {
       header += _printer.addText(
-        text: "I.E: ${mesa.inscricaoEstadual!}",
+        text: "I.E: ${venda.inscricaoEstadual!}",
         styles: PosStyles(
           bold: true,
           align: PosAlign.center,
@@ -219,10 +219,15 @@ class MesaFinishPrintService {
     return header;
   }
 
-  List<int> _makeVendaIdentifier(VendaMesaEntity mesa) {
-    List<int> mesaIdentifier = [];
-    mesaIdentifier += _printer.addText(
-      text: "MESA: ${mesa.numeroMesa} #${mesa.numeroVenda}",
+  List<int> _makeVendaIdentifier(VendaMesaEntity venda) {
+    List<int> vendaIdentifier = [];
+    String tipoVenda = _getTipoVenda().toUpperCase();
+
+    String vendaText =
+        "$tipoVenda${_isMesa() ? ": ${venda.numeroMesa}" : ''} #${venda.numeroVenda}";
+
+    vendaIdentifier += _printer.addText(
+      text: vendaText,
       styles: PosStyles(
         align: PosAlign.center,
         width: PosTextSize.size1,
@@ -231,10 +236,10 @@ class MesaFinishPrintService {
       ),
     );
 
-    return mesaIdentifier;
+    return vendaIdentifier;
   }
 
-  List<int> _makePaymentSummary(VendaMesaEntity mesa) {
+  List<int> _makePaymentSummary(VendaMesaEntity venda) {
     List<int> paymentSummary = [];
 
     paymentSummary += _printer.addRow([
@@ -250,7 +255,7 @@ class MesaFinishPrintService {
       ),
 
       FlexCol(
-        text: formatPreco(mesa.valorTotal),
+        text: formatPreco(venda.valorTotal),
         units: 8,
         styles: PosStyles(
           align: PosAlign.right,
@@ -263,7 +268,7 @@ class MesaFinishPrintService {
 
     paymentSummary += _printer.addSkipLines(1);
 
-    for (final payment in mesa.pagamentos) {
+    for (final payment in venda.pagamentos) {
       List<FlexCol> paymentRow = [];
       paymentRow.add(
         FlexCol(
@@ -301,13 +306,13 @@ class MesaFinishPrintService {
       ),
 
       FlexCol(
-        text: formatPreco(mesa.valorTotal),
+        text: formatPreco(venda.valorTotal),
         units: 7,
         styles: PosStyles(align: PosAlign.right, bold: true),
       ),
     ]);
 
-    if (mesa.troco != null && mesa.troco! > 0) {
+    if (venda.troco != null && venda.troco! > 0) {
       paymentSummary += _printer.addRow([
         FlexCol(
           text: "TROCO: ",
@@ -316,7 +321,7 @@ class MesaFinishPrintService {
         ),
 
         FlexCol(
-          text: mesa.troco.toString(),
+          text: venda.troco.toString(),
           units: 8,
           styles: PosStyles(align: PosAlign.right, bold: true),
         ),
@@ -327,14 +332,14 @@ class MesaFinishPrintService {
   }
 
   List<int> _makeWarning() {
-    List<int> mesaIdentifier = [];
+    List<int> vendaWarning = [];
 
-    mesaIdentifier += _printer.addText(
+    vendaWarning += _printer.addText(
       text: "*** NAO E DOCUMENTO FISCAL ***",
       styles: PosStyles(align: PosAlign.center),
     );
 
-    return mesaIdentifier;
+    return vendaWarning;
   }
 
   String _formatDate(DateTime date) =>
@@ -343,14 +348,14 @@ class MesaFinishPrintService {
   String _dateToHour(DateTime date) => DateFormat('HH:mm').format(date);
 
   List<int> _makeFooter() {
-    List<int> mesaIdentifier = [];
+    List<int> vendaFooter = [];
 
-    mesaIdentifier += _printer.addText(
+    vendaFooter += _printer.addText(
       text: "JIFFY sistema Inteligente de gestao empresarial - (65) 99293-4536",
       styles: PosStyles(align: PosAlign.center, underline: true),
     );
 
-    return mesaIdentifier;
+    return vendaFooter;
   }
 
   String _getPermanencia() {
@@ -366,4 +371,8 @@ class MesaFinishPrintService {
 
     return tempoFormatado;
   }
+
+  bool _isMesa() => false;
+
+  String _getTipoVenda() => _isMesa() ? "mesa" : "balcao";
 }
