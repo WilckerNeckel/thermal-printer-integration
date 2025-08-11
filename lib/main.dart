@@ -50,6 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
     atendente: 'Carla Nunes',
     cpfCliente: '987.654.321-00',
     nomeCliente: 'Paulo Andrade',
+    inscricaoEstadual: '863511640171',
+    codigoVenda: "#JLIWNAKU",
     dataCriacao: DateTime.now(),
 
     produtosLancados: [
@@ -75,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tipoImpacto: TipoImpactoPreco.naoModifica,
           ),
         ],
-        dataLancamento: DateTime.now(),
+        dataLancamento: DateTime(2025, 8, 11, 20, 15),
       ),
 
       // 2) Pizza com aumento e desconto
@@ -100,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tipoImpacto: TipoImpactoPreco.diminui,
           ),
         ],
-        dataLancamento: DateTime.now(),
+        dataLancamento: DateTime(2025, 8, 12, 20, 45),
       ),
 
       // 3) Sushi sem complementos
@@ -110,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
         valorUnitario: 30.00,
         valorFinal: 90.00, // 3 * 30
         complementos: [],
-        dataLancamento: DateTime.now(),
+        dataLancamento: DateTime(2025, 8, 12, 20, 45),
       ),
 
       // 4) Salada com desconto
@@ -128,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tipoImpacto: TipoImpactoPreco.diminui,
           ),
         ],
-        dataLancamento: DateTime.now(),
+        dataLancamento: DateTime(2025, 8, 12, 20, 45),
       ),
 
       // 5) Massa com troca sem custo
@@ -164,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tipoImpacto: TipoImpactoPreco.aumenta,
           ),
         ],
-        dataLancamento: DateTime.now(),
+        dataLancamento: DateTime(2025, 8, 15, 20, 30),
       ),
 
       // 7) Bebida sem custo extra

@@ -53,7 +53,12 @@ class SunmiPrinter implements ThermalPrinter {
 
   @override
   List<int> addText({required String text, required PosStyles styles}) {
-    return _generator.text(text, styles: styles);
+    List<int> bText = [];
+
+    bText +=  _generator.reset();
+
+    bText += _generator.text(text, styles: styles);
+    return bText;
   }
 
   @override

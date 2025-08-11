@@ -14,10 +14,7 @@ class MesaFinishPrintService {
   Future<void> print(VendaMesaEntity mesa) async {
     List<int> printing = _printer.createNewPrinting();
 
-    printing += _makeEmpresaName(mesa);
-    printing += _printer.addSkipLines(1);
-    printing += _makeMesaIdentifier(mesa);
-    printing += _makeWarning();
+    printing += _makeHeader(mesa);
     printing += _printer.addSkipLines(1);
     printing += _makeVendaInf(mesa);
     printing += _makeBody(mesa);
@@ -45,22 +42,22 @@ class MesaFinishPrintService {
 
     final headerCols = [
       FlexCol(
-        text: "QTD",
+        text: "Hora",
+        units: 3,
+        styles: PosStyles(bold: true),
+        maxLines: 2,
+      ),
+      FlexCol(
+        text: "Qtd",
         units: 2,
         styles: PosStyles(bold: true),
         maxLines: 2,
       ),
-      FlexCol(text: "PRODUTO", units: 4, styles: PosStyles(bold: true)),
+      FlexCol(text: "Produto", units: 4, styles: PosStyles(bold: true)),
       FlexCol(
-        text: "VALOR UN.",
+        text: "Valor Tot.",
         units: 3,
-        styles: PosStyles(bold: true),
-        maxLines: 2,
-      ),
-      FlexCol(
-        text: "VALOR TOT.",
-        units: 3,
-        styles: PosStyles(bold: true),
+        styles: PosStyles(bold: true, align: PosAlign.right),
         maxLines: 2,
       ),
     ];
@@ -76,6 +73,15 @@ class MesaFinishPrintService {
 
     for (final produto in mesa.produtosLancados) {
       List<FlexCol> produtoRow = [];
+
+      produtoRow.add(
+        FlexCol(
+          text: _dateToHour(produto.dataLancamento),
+          units: 3,
+          maxLines: 3,
+          styles: PosStyles(bold: true),
+        ),
+      );
 
       produtoRow.add(
         FlexCol(
@@ -97,82 +103,111 @@ class MesaFinishPrintService {
 
       produtoRow.add(
         FlexCol(
-          text: removeDiacritics(produto.valorUnitario.toString()),
+          text: produto.valorFinal.toString(),
           units: 3,
           maxLines: 3,
-          styles: PosStyles(bold: true),
-        ),
-      );
-
-      produtoRow.add(
-        FlexCol(
-          text: removeDiacritics(produto.valorFinal.toString()),
-          units: 3,
-          maxLines: 3,
-          styles: PosStyles(bold: true),
+          styles: PosStyles(bold: true, align: PosAlign.right),
         ),
       );
       produtosLancados += _printer.addRow(produtoRow);
     }
-    produtosLancados += _printer.addDivider();
     produtosLancados += _printer.addDivider();
 
     return produtosLancados;
   }
 
   List<int> _makeVendaInf(VendaMesaEntity mesa) {
-    List<int> mesaInf = [];
+    List<int> vendaInf = [];
+    vendaInf += _makeVendaIdentifier(mesa);
+    vendaInf += _makeWarning();
+    vendaInf += _printer.addSkipLines(1);
+
     if (mesa.cpfCliente != null) {
-      mesaInf += _makeClientIdentifier(mesa);
+      vendaInf += _makeClientIdentifier(mesa);
     }
 
-    mesaInf += _printer.addText(
-      text: "H. FIN: ${_formatDate(DateTime.now())}",
-      styles: PosStyles(bold: true),
+    // codigo venda
+    vendaInf += _printer.addText(
+      text: "CODIGO V.: ${mesa.codigoVenda}",
+      styles: PosStyles(),
     );
 
     // atendente
-    mesaInf += _printer.addText(
+    vendaInf += _printer.addText(
       text: "ATEND.: ${removeDiacritics(mesa.atendente)}",
-      styles: PosStyles(bold: true),
+      styles: PosStyles(),
     );
 
-    return mesaInf;
+    vendaInf += _printer.addText(
+      text: "H. FIN: ${_formatDate(DateTime.now())}",
+      styles: PosStyles(),
+    );
+
+    vendaInf += _printer.addText(
+      text: "TEMPO PERMANENCIA: ${_getPermanencia()}",
+      styles: PosStyles(),
+    );
+
+    return vendaInf;
   }
 
   List<int> _makeClientIdentifier(VendaMesaEntity mesa) {
     List<int> clientIdentifier = [];
 
-    String clientText = "CPF/CNPJ do consumidor: ${mesa.cpfCliente}";
-    clientIdentifier += _printer.addText(
-      text: clientText,
-      styles: PosStyles(bold: true, align: PosAlign.center),
-    );
+    String? cpfCnpj = mesa.cnpjCliente ?? mesa.cpfCliente;
+
+    if (cpfCnpj != null) {
+      String clientText = "CPF/CNPJ do consumidor: ${mesa.cpfCliente}";
+      clientIdentifier += _printer.addText(
+        text: clientText,
+        styles: PosStyles(align: PosAlign.left),
+      );
+    }
 
     return clientIdentifier;
   }
 
-  List<int> _makeEmpresaName(VendaMesaEntity mesa) {
-    List<int> empresaName = [];
+  List<int> _makeHeader(VendaMesaEntity mesa) {
+    List<int> header = [];
 
-    empresaName += _printer.addRow([
-      FlexCol(
-        text: removeDiacritics(mesa.nomeEmpresa),
-        units: 12,
-        maxLines: 2,
+    // nome empresa
+    header += _printer.addText(
+      text: removeDiacritics(mesa.nomeEmpresa),
+      styles: PosStyles(
+        bold: true,
+        align: PosAlign.center,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
+      ),
+    );
+
+    header += _printer.addText(
+      text: "CNPJ: ${mesa.cnpjEmpresa}",
+      styles: PosStyles(
+        bold: true,
+        align: PosAlign.center,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
+      ),
+    );
+
+    // cnpj + I.E
+    if (mesa.inscricaoEstadual != null) {
+      header += _printer.addText(
+        text: "I.E: ${mesa.inscricaoEstadual!}",
         styles: PosStyles(
           bold: true,
           align: PosAlign.center,
-          width: PosTextSize.size2,
-          height: PosTextSize.size2,
+          width: PosTextSize.size1,
+          height: PosTextSize.size1,
         ),
-      ),
-    ]);
+      );
+    }
 
-    return empresaName;
+    return header;
   }
 
-  List<int> _makeMesaIdentifier(VendaMesaEntity mesa) {
+  List<int> _makeVendaIdentifier(VendaMesaEntity mesa) {
     List<int> mesaIdentifier = [];
 
     mesaIdentifier += _printer.addText(
@@ -181,7 +216,7 @@ class MesaFinishPrintService {
         align: PosAlign.center,
         width: PosTextSize.size2,
         height: PosTextSize.size2,
-        reverse: true,
+        bold: true,
       ),
     );
 
@@ -194,16 +229,28 @@ class MesaFinishPrintService {
     paymentSummary += _printer.addRow([
       FlexCol(
         text: "TOTAL: ",
-        units: 6,
-        styles: PosStyles(align: PosAlign.left, bold: true),
+        units: 4,
+        styles: PosStyles(
+          align: PosAlign.left,
+          bold: true,
+          height: PosTextSize.size2,
+          width: PosTextSize.size2,
+        ),
       ),
 
       FlexCol(
         text: mesa.valorTotal.toString(),
-        units: 6,
-        styles: PosStyles(align: PosAlign.right, bold: true),
+        units: 8,
+        styles: PosStyles(
+          align: PosAlign.right,
+          bold: true,
+          height: PosTextSize.size2,
+          width: PosTextSize.size2,
+        ),
       ),
     ]);
+
+    paymentSummary += _printer.addSkipLines(1);
 
     for (final payment in mesa.pagamentos) {
       List<FlexCol> paymentRow = [];
@@ -238,16 +285,32 @@ class MesaFinishPrintService {
     paymentSummary += _printer.addRow([
       FlexCol(
         text: "TOTAL PAGO: ",
-        units: 6,
+        units: 5,
         styles: PosStyles(align: PosAlign.left, bold: true),
       ),
 
       FlexCol(
         text: mesa.valorTotal.toString(),
-        units: 6,
+        units: 7,
         styles: PosStyles(align: PosAlign.right, bold: true),
       ),
     ]);
+
+    if (mesa.troco != null && mesa.troco! > 0) {
+      paymentSummary += _printer.addRow([
+        FlexCol(
+          text: "TROCO: ",
+          units: 4,
+          styles: PosStyles(align: PosAlign.left, bold: true),
+        ),
+
+        FlexCol(
+          text: mesa.troco.toString(),
+          units: 8,
+          styles: PosStyles(align: PosAlign.right, bold: true),
+        ),
+      ]);
+    }
 
     return paymentSummary;
   }
@@ -266,14 +329,30 @@ class MesaFinishPrintService {
   String _formatDate(DateTime date) =>
       DateFormat('dd/MM HH:mm:ss').format(date);
 
+  String _dateToHour(DateTime date) => DateFormat('HH:mm').format(date);
+
   List<int> _makeFooter() {
     List<int> mesaIdentifier = [];
 
     mesaIdentifier += _printer.addText(
       text: "JIFFY sistema Inteligente de gestao empresarial - (65) 99293-4536",
-      styles: PosStyles(align: PosAlign.center),
+      styles: PosStyles(align: PosAlign.center, underline: true),
     );
 
     return mesaIdentifier;
+  }
+
+  String _getPermanencia() {
+    DateTime inicio = DateTime(2025, 8, 11, 14, 0); // 14:00
+    DateTime fim = DateTime(2025, 8, 11, 15, 33); // 15:33
+
+    Duration diff = fim.difference(inicio);
+
+    // formata manualmente no formato HH:mm
+    String horas = diff.inHours.toString().padLeft(2, '0');
+    String minutos = (diff.inMinutes % 60).toString().padLeft(2, '0');
+    String tempoFormatado = "$horas:$minutos";
+
+    return tempoFormatado;
   }
 }
