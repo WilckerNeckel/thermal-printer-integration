@@ -1,6 +1,7 @@
 class VendaMesaEntity {
   String numeroMesa;
-  String terminal;
+  String codTerminal;
+  int numeroVenda;
   String atendente;
   String? identificacao = "Cliente esta com pressa";
   String codigoVenda;
@@ -25,7 +26,8 @@ class VendaMesaEntity {
   VendaMesaEntity({
     required this.numeroMesa,
     required this.codigoVenda,
-    required this.terminal,
+    required this.numeroVenda,
+    required this.codTerminal,
     required this.atendente,
     required this.inscricaoEstadual,
     this.cpfCliente,

@@ -1,6 +1,7 @@
 import 'package:app/impressora/example/venda_mesa_entity.dart';
 import 'package:app/impressora/port/thermal_printer.dart';
 import 'package:app/impressora/utils/flex_col.dart';
+import 'package:app/impressora/utils/precoUtils.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:intl/intl.dart';
@@ -16,9 +17,11 @@ class MesaFinishPrintService {
 
     printing += _makeHeader(mesa);
     printing += _printer.addSkipLines(1);
-    printing += _makeVendaInf(mesa);
+    printing += _makeVendaInfTop(mesa);
     printing += _makeBody(mesa);
     printing += _makePaymentSummary(mesa);
+    printing += _printer.addSkipLines(1);
+    printing += _makeVendaInfBottom(mesa);
     printing += _printer.addSkipLines(1);
     printing += _makeFooter();
 
@@ -47,13 +50,13 @@ class MesaFinishPrintService {
         styles: PosStyles(bold: true),
         maxLines: 2,
       ),
+      FlexCol(text: "Produto", units: 4, styles: PosStyles(bold: true)),
       FlexCol(
         text: "Qtd",
         units: 2,
-        styles: PosStyles(bold: true),
+        styles: PosStyles(bold: true, align: PosAlign.center),
         maxLines: 2,
       ),
-      FlexCol(text: "Produto", units: 4, styles: PosStyles(bold: true)),
       FlexCol(
         text: "Valor Tot.",
         units: 3,
@@ -79,16 +82,7 @@ class MesaFinishPrintService {
           text: _dateToHour(produto.dataLancamento),
           units: 3,
           maxLines: 3,
-          styles: PosStyles(bold: true),
-        ),
-      );
-
-      produtoRow.add(
-        FlexCol(
-          text: produto.quantidade.toString(),
-          units: 2,
-          maxLines: 2,
-          styles: PosStyles(bold: true),
+          styles: PosStyles(),
         ),
       );
 
@@ -100,10 +94,18 @@ class MesaFinishPrintService {
           styles: PosStyles(bold: true),
         ),
       );
+      produtoRow.add(
+        FlexCol(
+          text: removerDecimalSeZero(produto.quantidade),
+          units: 2,
+          maxLines: 2,
+          styles: PosStyles(bold: true, align: PosAlign.center),
+        ),
+      );
 
       produtoRow.add(
         FlexCol(
-          text: produto.valorFinal.toString(),
+          text: formatPreco(produto.valorFinal),
           units: 3,
           maxLines: 3,
           styles: PosStyles(bold: true, align: PosAlign.right),
@@ -116,27 +118,37 @@ class MesaFinishPrintService {
     return produtosLancados;
   }
 
-  List<int> _makeVendaInf(VendaMesaEntity mesa) {
+  List<int> _makeVendaInfTop(VendaMesaEntity mesa) {
     List<int> vendaInf = [];
     vendaInf += _makeVendaIdentifier(mesa);
     vendaInf += _makeWarning();
     vendaInf += _printer.addSkipLines(1);
 
-    if (mesa.cpfCliente != null) {
-      vendaInf += _makeClientIdentifier(mesa);
-    }
-
-    // codigo venda
-    vendaInf += _printer.addText(
-      text: "CODIGO V.: ${mesa.codigoVenda}",
-      styles: PosStyles(),
-    );
-
-    // atendente
     vendaInf += _printer.addText(
       text: "ATEND.: ${removeDiacritics(mesa.atendente)}",
       styles: PosStyles(),
     );
+
+    // codigo venda
+    vendaInf += _printer.addText(
+      text: "CODIGO V.: #${mesa.codigoVenda}",
+      styles: PosStyles(),
+    );
+
+    vendaInf += _printer.addText(
+      text: "CODIGO TER.: #${mesa.codTerminal}",
+      styles: PosStyles(),
+    );
+
+    return vendaInf;
+  }
+
+  List<int> _makeVendaInfBottom(VendaMesaEntity mesa) {
+    List<int> vendaInf = [];
+
+    if (mesa.cpfCliente != null) {
+      vendaInf += _makeClientIdentifier(mesa);
+    }
 
     vendaInf += _printer.addText(
       text: "H. FIN: ${_formatDate(DateTime.now())}",
@@ -209,13 +221,12 @@ class MesaFinishPrintService {
 
   List<int> _makeVendaIdentifier(VendaMesaEntity mesa) {
     List<int> mesaIdentifier = [];
-
     mesaIdentifier += _printer.addText(
-      text: "MESA ${mesa.numeroMesa}",
+      text: "MESA: ${mesa.numeroMesa} #${mesa.numeroVenda}",
       styles: PosStyles(
         align: PosAlign.center,
-        width: PosTextSize.size2,
-        height: PosTextSize.size2,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
         bold: true,
       ),
     );
@@ -239,7 +250,7 @@ class MesaFinishPrintService {
       ),
 
       FlexCol(
-        text: mesa.valorTotal.toString(),
+        text: formatPreco(mesa.valorTotal),
         units: 8,
         styles: PosStyles(
           align: PosAlign.right,
@@ -264,7 +275,7 @@ class MesaFinishPrintService {
 
       paymentRow.add(
         FlexCol(
-          text: payment.valor.toString(),
+          text: formatPreco(payment.valor),
           units: 6,
           styles: PosStyles(align: PosAlign.right, bold: true),
         ),
@@ -290,7 +301,7 @@ class MesaFinishPrintService {
       ),
 
       FlexCol(
-        text: mesa.valorTotal.toString(),
+        text: formatPreco(mesa.valorTotal),
         units: 7,
         styles: PosStyles(align: PosAlign.right, bold: true),
       ),

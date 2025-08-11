@@ -46,19 +46,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final vendaMock = VendaMesaEntity(
     numeroMesa: '27',
-    terminal: 'T2',
+    codTerminal: 'HCH147',
+    numeroVenda: 895,
     atendente: 'Carla Nunes',
     cpfCliente: '987.654.321-00',
     nomeCliente: 'Paulo Andrade',
     inscricaoEstadual: '863511640171',
-    codigoVenda: "#JLIWNAKU",
+    codigoVenda: "JLIWNAKU",
     dataCriacao: DateTime.now(),
 
     produtosLancados: [
       // 1) Burger com complementos (aumenta e naoModifica)
       ProdutoLancadoEntity(
         nome: 'Burger Artesanal',
-        quantidade: 2,
+        quantidade: 20,
         valorUnitario: 22.50,
         valorFinal: 55.00, // 2 * 22.50 = 45.00 + (bacon 10.00) = 55.00
         complementos: [

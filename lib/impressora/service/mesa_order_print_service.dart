@@ -1,6 +1,7 @@
 import 'package:app/impressora/port/thermal_printer.dart';
 import 'package:app/impressora/example/venda_mesa_entity.dart';
 import 'package:app/impressora/utils/flex_col.dart';
+import 'package:app/impressora/utils/precoUtils.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:diacritic/diacritic.dart';
@@ -39,15 +40,21 @@ class MesaOrderPrintService {
   List<int> _makeMesaOrderHeader(VendaMesaEntity mesa) {
     List<int> orderHeader = [];
     orderHeader += _printer.addText(
-      text: "Mesa ${mesa.numeroMesa}",
+      text: "MESA: ${mesa.numeroMesa} #${mesa.numeroVenda}",
       styles: PosStyles(
         align: PosAlign.center,
         width: PosTextSize.size2,
         height: PosTextSize.size2,
+        bold: true,
         reverse: true,
       ),
     );
     orderHeader += _printer.addSkipLines(1);
+
+    orderHeader += _printer.addText(
+      text: "CODIGO TER.: ${mesa.codTerminal}",
+      styles: PosStyles(bold: true),
+    );
 
     // horário do pedido
     orderHeader += _printer.addText(
@@ -85,12 +92,22 @@ class MesaOrderPrintService {
     List<int> header = [];
     // header
     final headerCols = [
-      FlexCol(text: "QTD", units: 2, styles: PosStyles(bold: true)),
+      FlexCol(
+        text: "PRODUTO",
+        units: 9,
+        styles: PosStyles(bold: true, align: PosAlign.left),
+      ),
       FlexCol(text: "", units: 1, styles: PosStyles(bold: true)),
-      FlexCol(text: "PRODUTO", units: 9, styles: PosStyles(bold: true)),
+      FlexCol(
+        text: "QTD",
+        units: 2,
+        styles: PosStyles(bold: true, align: PosAlign.center),
+      ),
     ];
 
     header += _printer.addRow(headerCols);
+
+    header += _printer.addDivider();
 
     header += _printer.addSkipLines(1);
     return header;
@@ -104,19 +121,19 @@ class MesaOrderPrintService {
 
       produtoRow.add(
         FlexCol(
-          text: produto.quantidade.toString(),
-          units: 2,
-          maxLines: 2,
-          styles: PosStyles(bold: true),
+          text: removeDiacritics(produto.nome),
+          units: 10,
+          maxLines: 3,
+          styles: PosStyles(bold: true, align: PosAlign.left),
         ),
       );
-      produtoRow.add(FlexCol(text: '', units: 1));
+      // produtoRow.add(FlexCol(text: '', units: 1));
       produtoRow.add(
         FlexCol(
-          text: removeDiacritics(produto.nome),
-          units: 9,
-          maxLines: 3,
-          styles: PosStyles(bold: true),
+          text: removerDecimalSeZero(produto.quantidade),
+          units: 2,
+          maxLines: 2,
+          styles: PosStyles(bold: true, align: PosAlign.center),
         ),
       );
 
@@ -141,19 +158,18 @@ class MesaOrderPrintService {
       final bool showQuantidade =
           complemento.tipoImpacto != TipoImpactoPreco.naoModifica;
       final complementoText =
-          "${_getComplementoPrefix(complemento)} ${showQuantidade == true ? complemento.quantidade : ''} ${removeDiacritics(complemento.nome)}";
-
-      complementoRow.add(FlexCol(text: '', units: 3));
+          "${_getComplementoPrefix(complemento)} ${showQuantidade == true ? removerDecimalSeZero(complemento.quantidade) : ''} ${removeDiacritics(complemento.nome)}";
 
       complementoRow.add(
         FlexCol(
           text: complementoText,
-          units: 9,
+          units: 10,
           maxLines: 2,
-          styles: PosStyles(bold: true),
+          styles: PosStyles(bold: true, align: PosAlign.left),
         ),
       );
 
+      complementoRow.add(FlexCol(text: '', units: 2));
       complementosLancados += _printer.addRow(complementoRow);
     }
 
