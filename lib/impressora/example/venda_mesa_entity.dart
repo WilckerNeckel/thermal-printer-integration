@@ -2,6 +2,8 @@ class VendaMesaEntity {
   String numeroMesa;
   String terminal;
   String atendente;
+  String? identificacao = "Cliente esta com pressa";
+
   String nomeEmpresa = "PIZZARIA DO WIL";
 
   String? cpfCliente;

@@ -10,7 +10,7 @@ class MesaOrderPrintService {
 
   MesaOrderPrintService({required ThermalPrinter printer}) : _printer = printer;
 
-  Future<void> print(VendaMesaEntity mesa) async {
+  Future<void> printe(VendaMesaEntity mesa) async {
     try {
       List<int> printing = _printer.createNewPrinting();
       printing += _makeMesaOrderHeader(mesa);
@@ -20,8 +20,20 @@ class MesaOrderPrintService {
 
       await _printer.sendPrint(printing);
     } catch (e) {
-      // print("DEEU ERROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ${e.toString()}");
+      print(
+        "DEEU ERROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ${e.toString()}" as dynamic,
+      );
     }
+  }
+
+  List<int> _makeOrderBody(VendaMesaEntity mesa) {
+    List<int> orderBody = [];
+
+    orderBody += _makeOrderBodyHeader(mesa);
+
+    orderBody += _makeProdutosLancadosList(mesa);
+
+    return orderBody;
   }
 
   List<int> _makeMesaOrderHeader(VendaMesaEntity mesa) {
@@ -49,28 +61,33 @@ class MesaOrderPrintService {
       styles: PosStyles(bold: true),
     );
 
+    // identificação
+
+    if (mesa.identificacao != null) {
+      final col = [
+        FlexCol(
+          text: "IDENT.: ${removeDiacritics(mesa.identificacao!)}",
+          styles: PosStyles(bold: true),
+          maxLines: 2,
+          units: 12,
+        ),
+      ];
+
+      orderHeader += _printer.addRow(col);
+    }
+
     // divider
     orderHeader += _printer.addDivider();
     return orderHeader;
-  }
-
-  List<int> _makeOrderBody(VendaMesaEntity mesa) {
-    List<int> orderBody = [];
-
-    orderBody += _makeOrderBodyHeader(mesa);
-
-    orderBody += _makeProdutosLancadosList(mesa);
-
-    return orderBody;
   }
 
   List<int> _makeOrderBodyHeader(VendaMesaEntity mesa) {
     List<int> header = [];
     // header
     final headerCols = [
-      FlexCol(text: "QTD", units: 3, styles: PosStyles(bold: true)),
+      FlexCol(text: "QTD", units: 2, styles: PosStyles(bold: true)),
       FlexCol(text: "", units: 1, styles: PosStyles(bold: true)),
-      FlexCol(text: "PRODUTO", units: 8, styles: PosStyles(bold: true)),
+      FlexCol(text: "PRODUTO", units: 9, styles: PosStyles(bold: true)),
     ];
 
     header += _printer.addRow(headerCols);
@@ -126,12 +143,12 @@ class MesaOrderPrintService {
       final complementoText =
           "${_getComplementoPrefix(complemento)} ${showQuantidade == true ? complemento.quantidade : ''} ${removeDiacritics(complemento.nome)}";
 
-      complementoRow.add(FlexCol(text: '', units: 4));
+      complementoRow.add(FlexCol(text: '', units: 3));
 
       complementoRow.add(
         FlexCol(
           text: complementoText,
-          units: 8,
+          units: 9,
           maxLines: 2,
           styles: PosStyles(bold: true),
         ),
@@ -153,7 +170,7 @@ class MesaOrderPrintService {
       case TipoImpactoPreco.diminui:
         return "-";
       default:
-        return "";
+        return "*";
     }
   }
 }

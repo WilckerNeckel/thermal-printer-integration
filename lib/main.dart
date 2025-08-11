@@ -9,6 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupPrinter();
   runApp(const MyApp());
+  print("teste");
 }
 
 class MyApp extends StatelessWidget {
@@ -200,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final printerService = MesaOrderPrintService(printer: printerAdapter);
 
   Future<void> _printPedido() async {
-    await printerService.print(vendaMock);
+    await printerService.printe(vendaMock);
     // await printer.printText(
     //   'Hello Sunmi!',
     //   // alignment: align.Align.center,
