@@ -42,7 +42,7 @@ class SunmiPrinter implements ThermalPrinter {
   List<int> addText({required String text, required PosStyles styles}) {
     List<int> bText = [];
 
-    bText +=  _generator.reset();
+    bText += _generator.reset();
 
     bText += _generator.text(text, styles: styles);
     return bText;
@@ -102,58 +102,4 @@ class SunmiPrinter implements ThermalPrinter {
         return Align.right;
     }
   }
-
-  // PosAlign _translateEscAlignment(PrintAlignment align) {
-  //   switch (align) {
-  //     case PrintAlignment.left:
-  //       return PosAlign.left;
-  //     case PrintAlignment.center:
-  //       return PosAlign.center;
-  //     case PrintAlignment.right:
-  //       return PosAlign.right;
-  //   }
-  // }
 }
-
-
-
-    // final table = EscPosFlexTable(
-    //   generator,
-    //   paperSize: PaperSize.mm58,
-    // );
-
-
-
-    // bytes += table.addRow([
-    //   FlexCol(
-    //     text: 'Coluna 1 com expansao e texto grande que precisa quebrar',
-    //     units: 3,
-    //     maxLines: 3,
-    //     styles: const PosStyles(align: PosAlign.center, bold: true),
-    //   ),
-    //   FlexCol(
-    //     text: '',
-    //     units: 1,
-    //     maxLines: 1,
-    //     styles: const PosStyles(align: PosAlign.center, bold: true),
-    //   ),
-    //   FlexCol(
-    //     text:
-    //         'Coluna 2 com expansao — ainda maior — para testar word-wrap com múltiplas linhas e reticências',
-    //     units: 3,
-    //     maxLines: 3,
-    //     styles: const PosStyles(align: PosAlign.center, bold: true),
-    //   ),
-    //   FlexCol(
-    //     text: '',
-    //     units: 1,
-    //     maxLines: 1,
-    //     styles: const PosStyles(align: PosAlign.center, bold: true),
-    //   ),
-    //   FlexCol(
-    //     text: 'Coluna 3 com expansao',
-    //     units: 4,
-    //     maxLines: 2,
-    //     styles: const PosStyles(align: PosAlign.center, underline: true),
-    //   ),
-    // ]);
