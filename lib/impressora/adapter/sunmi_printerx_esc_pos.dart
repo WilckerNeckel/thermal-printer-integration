@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:app/impressora/enum/print_alignment.dart';
 import 'package:app/impressora/port/thermal_printer.dart';
 import 'package:app/impressora/utils/FlexEscPosTable.dart';
 import 'package:app/impressora/utils/flex_col.dart';
@@ -42,17 +41,17 @@ class SunmiPrinter implements ThermalPrinter {
   List<int> addText({required String text, required PosStyles styles}) {
     List<int> bText = [];
 
-    bText +=  _generator.reset();
+    bText += _generator.reset();
 
     bText += _generator.text(text, styles: styles);
     return bText;
   }
 
   @override
-  Future<void> printText(String text, bool bold, PrintAlignment align) async {
+  Future<void> printText(String text, PosStyles styles) async {
     final printer = _getPrinter();
-    final translatedAlign = _translatePrinterXAlignment(align);
-    await printer.printText(text, bold: bold, align: translatedAlign);
+    final alignTranslated = _translatePrinterXAlignment(styles.align);
+    await printer.printText(text, bold: styles.bold, align: alignTranslated);
   }
 
   @override
@@ -92,13 +91,13 @@ class SunmiPrinter implements ThermalPrinter {
     return p;
   }
 
-  Align _translatePrinterXAlignment(PrintAlignment align) {
+  Align _translatePrinterXAlignment(PosAlign align) {
     switch (align) {
-      case PrintAlignment.left:
+      case PosAlign.left:
         return Align.left;
-      case PrintAlignment.center:
+      case PosAlign.center:
         return Align.center;
-      case PrintAlignment.right:
+      case PosAlign.right:
         return Align.right;
     }
   }
