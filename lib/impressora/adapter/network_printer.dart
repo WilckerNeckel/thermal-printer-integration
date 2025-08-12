@@ -1,34 +1,22 @@
-import 'dart:typed_data';
-
-import 'package:app/impressora/enum/print_alignment.dart';
 import 'package:app/impressora/port/thermal_printer.dart';
 import 'package:app/impressora/utils/FlexEscPosTable.dart';
 import 'package:app/impressora/utils/flex_col.dart';
-import 'package:sunmi_printerx/sunmi_printerx.dart';
+import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:sunmi_printerx/printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:sunmi_printerx/align.dart';
 
 // Aqui foi usado 2 pacotes principais, SunmiPrinterX e esc_pos_utils
-class SunmiPrinter implements ThermalPrinter {
-  final SunmiPrinterX _plugin = SunmiPrinterX();
-  Printer? _printer;
+class NetWorkPrinterAdapter implements ThermalPrinter {
   PaperSize paperSize;
   late Generator _generator;
+  NetworkPrinter? _printer;
 
-  SunmiPrinter({required this.paperSize});
+  NetWorkPrinterAdapter({required this.paperSize});
 
   Future<void> init({bool Function(Printer p)? choose}) async {
-    final printers = await _plugin.getPrinters();
-    if (printers.isEmpty) {
-      throw StateError('No Sunmi printers found');
-    }
-    _printer = choose != null
-        ? (printers.firstWhere(choose, orElse: () => printers.first))
-        : printers.first;
-
     final profile = await CapabilityProfile.load();
     _generator = Generator(paperSize, profile);
+    _printer = NetworkPrinter(paperSize, profile);
   }
 
   @override
@@ -49,10 +37,21 @@ class SunmiPrinter implements ThermalPrinter {
   }
 
   @override
-  Future<void> printText(String text, bool bold, PrintAlignment align) async {
-    final printer = _getPrinter();
-    final translatedAlign = _translatePrinterXAlignment(align);
-    await printer.printText(text, bold: bold, align: translatedAlign);
+  Future<void> printText(String text, PosStyles styles) async {
+    // final printer = _getPrinter();
+    // final translatedAlign = _translatePrinterXAlignment(align);
+    // await printer.printText(text, bold: bold, align: translatedAlign);
+
+    final printer = await _getPrinter();
+    final PosPrintResult res = await printer.connect(
+      "192.168.1.14",
+      port: 9100,
+    );
+    if (res == PosPrintResult.success) {
+      printer.text(text, styles: styles);
+    } else {
+      throw Exception("ERRRRROOOO DE CONEXÃO COM IMPRESSORA");
+    }
   }
 
   @override
@@ -79,27 +78,25 @@ class SunmiPrinter implements ThermalPrinter {
 
   @override
   Future<void> sendPrint(List<int> bytesToPrint) async {
-    final p = _getPrinter();
+    final printer = await _getPrinter();
+    printer.rawBytes(bytesToPrint);
 
-    await p.printEscPosCommands(Uint8List.fromList(bytesToPrint));
+    // await p.printEscPosCommands(Uint8List.fromList(bytesToPrint));
   }
 
-  Printer _getPrinter() {
-    final p = _printer;
-    if (p == null) {
+  Future<NetworkPrinter> _getPrinter() async {
+    final printer = _printer;
+    if (printer == null) {
       throw StateError('Printer not initialized. Call init() first.');
     }
-    return p;
-  }
+    final PosPrintResult res = await printer.connect(
+      "192.168.1.14",
+      port: 9100,
+    );
 
-  Align _translatePrinterXAlignment(PrintAlignment align) {
-    switch (align) {
-      case PrintAlignment.left:
-        return Align.left;
-      case PrintAlignment.center:
-        return Align.center;
-      case PrintAlignment.right:
-        return Align.right;
+    if (res != PosPrintResult.success) {
+      throw Exception("ERRRRROOOO DE CONEXÃO COM IMPRESSORA");
     }
+    return printer;
   }
 }
