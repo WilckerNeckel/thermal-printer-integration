@@ -1,9 +1,8 @@
-import 'package:app/impressora/enum/print_alignment.dart';
 import 'package:app/impressora/utils/flex_col.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 abstract class ThermalPrinter {
-  Future<void> printText(String text, bool bold, PrintAlignment align);
+  Future<void> printText(String text, PosStyles styles);
 
   List<int> createNewPrinting();
 
