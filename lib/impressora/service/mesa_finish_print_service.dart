@@ -30,6 +30,104 @@ class MesaFinishPrintService {
     await _printer.sendPrint(printing);
   }
 
+  List<int> _makeHeader(VendaMesaEntity venda) {
+    List<int> header = [];
+
+    // nome empresa
+    header += _printer.addText(
+      text: removeDiacritics(venda.nomeEmpresa),
+      styles: PosStyles(
+        bold: true,
+        align: PosAlign.center,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
+      ),
+    );
+
+    header += _printer.addText(
+      text: "CNPJ: ${venda.cnpjEmpresa}",
+      styles: PosStyles(
+        bold: true,
+        align: PosAlign.center,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
+      ),
+    );
+
+    // cnpj + I.E
+    if (venda.inscricaoEstadual != null) {
+      header += _printer.addText(
+        text: "I.E: ${venda.inscricaoEstadual!}",
+        styles: PosStyles(
+          bold: true,
+          align: PosAlign.center,
+          width: PosTextSize.size1,
+          height: PosTextSize.size1,
+        ),
+      );
+    }
+
+    return header;
+  }
+
+  List<int> _makeVendaInfTop(VendaMesaEntity venda) {
+    List<int> vendaInf = [];
+    vendaInf += _makeVendaIdentifier(venda);
+    vendaInf += _makeWarning();
+    vendaInf += _printer.addSkipLines(1);
+
+    vendaInf += _printer.addText(
+      text: "ATEND.: ${removeDiacritics(venda.atendente)}",
+      styles: PosStyles(),
+    );
+
+    // codigo venda
+    vendaInf += _printer.addText(
+      text: "CODIGO V.: #${venda.codigoVenda}",
+      styles: PosStyles(),
+    );
+
+    vendaInf += _printer.addText(
+      text: "CODIGO TER.: #${venda.codTerminal}",
+      styles: PosStyles(),
+    );
+
+    return vendaInf;
+  }
+
+  List<int> _makeVendaIdentifier(VendaMesaEntity venda) {
+    List<int> vendaIdentifier = [];
+    String tipoVenda = _getTipoVenda().toUpperCase();
+
+    String vendaText =
+        "$tipoVenda${_isMesa() ? ": ${venda.numeroMesa}" : ''} #${venda.numeroVenda}";
+
+    vendaIdentifier += _printer.addText(
+      text: vendaText,
+      styles: PosStyles(
+        align: PosAlign.center,
+        width: PosTextSize.size1,
+        height: PosTextSize.size1,
+        bold: true,
+      ),
+    );
+
+    return vendaIdentifier;
+  }
+
+
+  List<int> _makeWarning() {
+    List<int> vendaWarning = [];
+
+    vendaWarning += _printer.addText(
+      text: "*** NAO E DOCUMENTO FISCAL ***",
+      styles: PosStyles(align: PosAlign.center),
+    );
+
+    return vendaWarning;
+  }
+
+
   List<int> _makeBody(VendaMesaEntity venda) {
     List<int> body = [];
     body += _makeBodyHeader();
@@ -116,127 +214,6 @@ class MesaFinishPrintService {
     produtosLancados += _printer.addDivider();
 
     return produtosLancados;
-  }
-
-  List<int> _makeVendaInfTop(VendaMesaEntity venda) {
-    List<int> vendaInf = [];
-    vendaInf += _makeVendaIdentifier(venda);
-    vendaInf += _makeWarning();
-    vendaInf += _printer.addSkipLines(1);
-
-    vendaInf += _printer.addText(
-      text: "ATEND.: ${removeDiacritics(venda.atendente)}",
-      styles: PosStyles(),
-    );
-
-    // codigo venda
-    vendaInf += _printer.addText(
-      text: "CODIGO V.: #${venda.codigoVenda}",
-      styles: PosStyles(),
-    );
-
-    vendaInf += _printer.addText(
-      text: "CODIGO TER.: #${venda.codTerminal}",
-      styles: PosStyles(),
-    );
-
-    return vendaInf;
-  }
-
-  List<int> _makeVendaInfBottom(VendaMesaEntity venda) {
-    List<int> vendaInf = [];
-
-    if (venda.cpfCliente != null) {
-      vendaInf += _makeClientIdentifier(venda);
-    }
-
-    vendaInf += _printer.addText(
-      text: "H. FIN: ${_formatDate(DateTime.now())}",
-      styles: PosStyles(),
-    );
-
-    vendaInf += _printer.addText(
-      text: "TEMPO PERMANENCIA: ${_getPermanencia()}",
-      styles: PosStyles(),
-    );
-
-    return vendaInf;
-  }
-
-  List<int> _makeClientIdentifier(VendaMesaEntity venda) {
-    List<int> clientIdentifier = [];
-
-    String? cpfCnpj = venda.cnpjCliente ?? venda.cpfCliente;
-
-    if (cpfCnpj != null) {
-      String clientText = "CPF/CNPJ do consumidor: ${venda.cpfCliente}";
-      clientIdentifier += _printer.addText(
-        text: clientText,
-        styles: PosStyles(align: PosAlign.left),
-      );
-    }
-
-    return clientIdentifier;
-  }
-
-  List<int> _makeHeader(VendaMesaEntity venda) {
-    List<int> header = [];
-
-    // nome empresa
-    header += _printer.addText(
-      text: removeDiacritics(venda.nomeEmpresa),
-      styles: PosStyles(
-        bold: true,
-        align: PosAlign.center,
-        width: PosTextSize.size1,
-        height: PosTextSize.size1,
-      ),
-    );
-
-    header += _printer.addText(
-      text: "CNPJ: ${venda.cnpjEmpresa}",
-      styles: PosStyles(
-        bold: true,
-        align: PosAlign.center,
-        width: PosTextSize.size1,
-        height: PosTextSize.size1,
-      ),
-    );
-
-    // cnpj + I.E
-    if (venda.inscricaoEstadual != null) {
-      header += _printer.addText(
-        text: "I.E: ${venda.inscricaoEstadual!}",
-        styles: PosStyles(
-          bold: true,
-          align: PosAlign.center,
-          width: PosTextSize.size1,
-          height: PosTextSize.size1,
-        ),
-      );
-    }
-
-    return header;
-  }
-
-  List<int> _makeVendaIdentifier(VendaMesaEntity venda) {
-    List<int> vendaIdentifier = [];
-    String tipoVenda = _getTipoVenda().toUpperCase();
-
-    String vendaText =
-        "$tipoVenda${_isMesa() ? ": ${venda.numeroMesa}" : ''} #${venda.numeroVenda}";
-
-    vendaIdentifier += _printer.addText(
-      text: vendaText,
-      styles: PosStyles(
-        align: PosAlign.center,
-        width: PosTextSize.size1,
-        height: PosTextSize.size1,
-        bold: true,
-      ),
-    );
-
-    return vendaIdentifier;
   }
 
   List<int> _makePaymentSummary(VendaMesaEntity venda) {
@@ -331,21 +308,41 @@ class MesaFinishPrintService {
     return paymentSummary;
   }
 
-  List<int> _makeWarning() {
-    List<int> vendaWarning = [];
+  List<int> _makeVendaInfBottom(VendaMesaEntity venda) {
+    List<int> vendaInf = [];
 
-    vendaWarning += _printer.addText(
-      text: "*** NAO E DOCUMENTO FISCAL ***",
-      styles: PosStyles(align: PosAlign.center),
+    if (venda.cpfCliente != null) {
+      vendaInf += _makeClientIdentifier(venda);
+    }
+
+    vendaInf += _printer.addText(
+      text: "H. FIN: ${_formatDate(DateTime.now())}",
+      styles: PosStyles(),
     );
 
-    return vendaWarning;
+    vendaInf += _printer.addText(
+      text: "TEMPO PERMANENCIA: ${_getPermanencia()}",
+      styles: PosStyles(),
+    );
+
+    return vendaInf;
   }
 
-  String _formatDate(DateTime date) =>
-      DateFormat('dd/MM HH:mm:ss').format(date);
+  List<int> _makeClientIdentifier(VendaMesaEntity venda) {
+    List<int> clientIdentifier = [];
 
-  String _dateToHour(DateTime date) => DateFormat('HH:mm').format(date);
+    String? cpfCnpj = venda.cnpjCliente ?? venda.cpfCliente;
+
+    if (cpfCnpj != null) {
+      String clientText = "CPF/CNPJ do consumidor: ${venda.cpfCliente}";
+      clientIdentifier += _printer.addText(
+        text: clientText,
+        styles: PosStyles(align: PosAlign.left),
+      );
+    }
+
+    return clientIdentifier;
+  }
 
   List<int> _makeFooter() {
     List<int> vendaFooter = [];
@@ -357,6 +354,11 @@ class MesaFinishPrintService {
 
     return vendaFooter;
   }
+
+  String _formatDate(DateTime date) =>
+      DateFormat('dd/MM HH:mm:ss').format(date);
+
+  String _dateToHour(DateTime date) => DateFormat('HH:mm').format(date);
 
   String _getPermanencia() {
     DateTime inicio = DateTime(2025, 8, 11, 14, 0); // 14:00
