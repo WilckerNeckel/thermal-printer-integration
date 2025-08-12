@@ -1,5 +1,5 @@
-import 'package:app/impressora/adapter/printer_start.dart';
-import 'package:app/impressora/adapter/sunmi_printerx_esc_pos.dart';
+import 'package:app/impressora/adapter/network_printer_initializer.dart';
+import 'package:app/impressora/adapter/sumni_printer_initializer.dart';
 import 'package:app/impressora/example/venda_mesa_entity.dart';
 import 'package:app/impressora/service/mesa_finish_print_service.dart';
 import 'package:app/impressora/service/mesa_order_print_service.dart';
@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await setupPrinter();
+  await initSunmiPrinter();
+  await initNetworkPrinter();
   runApp(const MyApp());
   print("teste");
 }
@@ -37,13 +38,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // SunmiPrinterAdapter printer = SunmiPrinterAdapter();
-
-  // SunmiXPrinterAdapter printer = printerAdapter;
-
-  // SunmiPrinter printer = printerAdapter;
-  // final printerService = MesaOrderPrintService(printer: printerAdapter);
-
   final vendaMock = VendaMesaEntity(
     numeroMesa: '27',
     codTerminal: 'HCH147',
@@ -200,44 +194,20 @@ class _MyHomePageState extends State<MyHomePage> {
     troco: 17.00, // total pagos (340) - total (323)
   );
 
-  final printerService2 = MesaFinishPrintService(printer: printerAdapter);
-  final printerService = MesaOrderPrintService(printer: printerAdapter);
+  final finishSumniPrinter = MesaFinishPrintService(printer: printerAdapter);
+  final orderSumniPrinter = MesaOrderPrintService(printer: printerAdapter);
+
+  final orderNetWorkPrinter = MesaOrderPrintService(printer: networkPrinter);
+  final finishNetWorkPrinter = MesaFinishPrintService(printer: networkPrinter);
 
   Future<void> _printPedido() async {
-    await printerService.printe(vendaMock);
-    // await printer.printText(
-    //   'Hello Sunmi!',
-    //   // alignment: align.Align.center,
-    //   bold: true,
-    //   textWidthRatio: 2,
-    //   textHeightRatio: 2,
-    // );
-
-    // await printerAdapter.printColumns(
-    //   ['2x', 'Burger Combo', '12.50'], // Qty, Product, Value
-    //   columnWidths: [
-    //     3,
-    //     6,
-    //     3,
-    //   ], // total 12 units: 3 for qty, 6 for name, 3 for price
-    //   columnAligns: [
-    //     align.Align.left, // Qty left-aligned
-    //     align.Align.left, // Product name left-aligned
-    //     align.Align.right, // Price right-aligned
-    //   ],
-    // );
-
-    // await printer.lineWrap();
-    // await printer.printBoldColumnsEscPosDemo();
-
-    // await printer.printText();
-    // await printer.cutPaper();
-
-    // await printer.printEscPos();
+    // await orderSumniPrinter.printe(vendaMock);
+    await orderNetWorkPrinter.printe(vendaMock);
   }
 
   Future<void> _printFinalizacao() async {
-    await printerService2.print(vendaMock);
+    // await finishSumniPrinter.print(vendaMock);
+    await finishNetWorkPrinter.print(vendaMock);
   }
 
   @override

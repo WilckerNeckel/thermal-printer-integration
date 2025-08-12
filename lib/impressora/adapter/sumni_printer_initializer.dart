@@ -15,7 +15,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 // }
 
 final printerAdapter = SunmiPrinter(paperSize: PaperSize.mm58);
-Future<void> setupPrinter() async {
+Future<void> initSunmiPrinter() async {
   try {
     await printerAdapter.init();
     // Optional: choose a specific printer
