@@ -5,13 +5,19 @@ import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:sunmi_printerx/printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
-// Aqui foi usado 2 pacotes principais, SunmiPrinterX e esc_pos_utils
+// Aqui foi usado 2 pacotes principais, esc_pos_printer e esc_pos_utils
 class NetWorkPrinterAdapter implements ThermalPrinter {
   PaperSize paperSize;
   late Generator _generator;
   NetworkPrinter? _printer;
+  String ip;
+  int port;
 
-  NetWorkPrinterAdapter({required this.paperSize});
+  NetWorkPrinterAdapter({
+    required this.paperSize,
+    required this.ip,
+    required this.port,
+  });
 
   Future<void> init({bool Function(Printer p)? choose}) async {
     final profile = await CapabilityProfile.load();
@@ -40,10 +46,7 @@ class NetWorkPrinterAdapter implements ThermalPrinter {
   @override
   Future<void> printText(String text, PosStyles styles) async {
     final printer = await _getPrinter();
-    final PosPrintResult res = await printer.connect(
-      "192.168.1.14",
-      port: 9100,
-    );
+    final PosPrintResult res = await printer.connect(ip, port: port);
     if (res == PosPrintResult.success) {
       printer.text(text, styles: styles);
     } else {
@@ -86,10 +89,7 @@ class NetWorkPrinterAdapter implements ThermalPrinter {
     if (printer == null) {
       throw StateError('Printer not initialized. Call init() first.');
     }
-    final PosPrintResult res = await printer.connect(
-      "192.168.1.14",
-      port: 9100,
-    );
+    final PosPrintResult res = await printer.connect(ip, port: port);
 
     if (res != PosPrintResult.success) {
       throw Exception("ERRRRROOOO DE CONEXÃO COM IMPRESSORA");
