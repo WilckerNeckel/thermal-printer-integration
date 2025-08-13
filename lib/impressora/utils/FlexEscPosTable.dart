@@ -21,7 +21,8 @@ class EscPosFlexTable {
     this.overrideCpl80,
   });
 
-  int get totalUnits => (paperSize == PaperSize.mm58) ? 12 : 24;
+  // int get totalUnits => (paperSize == PaperSize.mm58) ? 12 : 24;
+  int get totalUnits => 12;
 
   int get baseCpl {
     if (paperSize == PaperSize.mm58) return overrideCpl58 ?? defaultCpl58;
@@ -129,7 +130,8 @@ class EscPosFlexTable {
             text: lineText,
             width: c.units,
             styles: c.styles.copyWith(
-              height: PosTextSize.size1,
+              // height: PosTextSize.size1,
+              // width: PosTextSize.size1,
               // width multiplier should be set via styles if you’re using it;
               // many esc_pos utils use styles.height/width for scaling.
               // Here we assume width scaling is handled in styles,

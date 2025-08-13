@@ -23,6 +23,7 @@ class NetWorkPrinterAdapter implements ThermalPrinter {
   List<int> createNewPrinting() {
     List<int> newPrinting = [];
     newPrinting += _generator.reset();
+
     return newPrinting;
   }
 
@@ -38,10 +39,6 @@ class NetWorkPrinterAdapter implements ThermalPrinter {
 
   @override
   Future<void> printText(String text, PosStyles styles) async {
-    // final printer = _getPrinter();
-    // final translatedAlign = _translatePrinterXAlignment(align);
-    // await printer.printText(text, bold: bold, align: translatedAlign);
-
     final printer = await _getPrinter();
     final PosPrintResult res = await printer.connect(
       "192.168.1.14",

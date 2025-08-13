@@ -3,6 +3,8 @@ import 'package:app/impressora/adapter/sumni_printer_initializer.dart';
 import 'package:app/impressora/example/venda_mesa_entity.dart';
 import 'package:app/impressora/service/mesa_finish_print_service.dart';
 import 'package:app/impressora/service/mesa_order_print_service.dart';
+import 'package:app/impressora/utils/flex_col.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -200,6 +202,16 @@ class _MyHomePageState extends State<MyHomePage> {
   final orderNetWorkPrinter = MesaOrderPrintService(printer: networkPrinter);
   final finishNetWorkPrinter = MesaFinishPrintService(printer: networkPrinter);
 
+  Future<void> _printPedidoSunmi() async {
+    // await orderSumniPrinter.printe(vendaMock);
+    await orderSumniPrinter.printe(vendaMock);
+  }
+
+  Future<void> _printFinalizacaoSunmi() async {
+    // await finishSumniPrinter.print(vendaMock);
+    await finishSumniPrinter.print(vendaMock);
+  }
+
   Future<void> _printPedido() async {
     // await orderSumniPrinter.printe(vendaMock);
     await orderNetWorkPrinter.printe(vendaMock);
@@ -208,6 +220,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _printFinalizacao() async {
     // await finishSumniPrinter.print(vendaMock);
     await finishNetWorkPrinter.print(vendaMock);
+    // await networkPrinter.test();
+
+    // List<int> bytes = networkPrinter.createNewPrinting();
+
+    // bytes += networkPrinter.addRow([
+    //   FlexCol(
+    //     text: '1234567890' * 10,
+    //     units: 12,
+    //     maxLines: 2,
+    //     styles: const PosStyles(
+    //       width: PosTextSize.size1,
+    //       height: PosTextSize.size1,
+    //       fontType: PosFontType.fontA,
+    //     ),
+    //   ),
+    // ]);
+    // bytes += networkPrinter.addCutPaper();
+    // await networkPrinter.sendPrint(bytes);
   }
 
   @override
@@ -222,16 +252,32 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Clique para imprimir o pedido',
+              'Clique para imprimir o pedido na Rede',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             ElevatedButton(onPressed: _printPedido, child: Icon(Icons.add)),
             Text(
-              'Clique para imprimir a finalizacao',
+              'Clique para imprimir a finalizacao Rede',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             ElevatedButton(
               onPressed: _printFinalizacao,
+              child: Icon(Icons.add),
+            ),
+            Text(
+              'Clique para imprimir o pedido no D2',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            ElevatedButton(
+              onPressed: _printPedidoSunmi,
+              child: Icon(Icons.add),
+            ),
+            Text(
+              'Clique para imprimir a finalizacao D2',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            ElevatedButton(
+              onPressed: _printFinalizacaoSunmi,
               child: Icon(Icons.add),
             ),
           ],
